@@ -5,15 +5,15 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  accountNumber: {
+  account_number: {
     type: Number,
     required: true,
   },
-  emailAddress: {
+  email: {
     type: String,
     required: true
   },
-  identityNumber: {
+  identity_number: {
     type: Number,
     required: true
   }

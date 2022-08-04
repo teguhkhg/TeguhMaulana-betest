@@ -15,5 +15,6 @@ config.ENV = process.env.NODE_ENV;
 
 // Set the Encryption Key
 config.ENCRYPT_KEY = process.env.ENCRYPT_KEY;
+config.SECRET = process.env.SECRET;
 
 module.exports = config;

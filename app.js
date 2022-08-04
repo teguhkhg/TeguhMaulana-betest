@@ -1,5 +1,6 @@
 const appRoot = require('app-root-path');
 const express = require('express');
+const bearerToken = require('express-bearer-token');
 const requestId = require('express-request-id')();
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
@@ -12,6 +13,7 @@ require(`${appRoot}/config/cache/cacheService`).getCacheClient();
 const db = require(`${appRoot}/config/dbConfig`);
 
 const userRouter = require(`${appRoot}/app/routes/userRouter`);
+const authRouter = require(`${appRoot}/app/routes/authRouter`);
 
 const app = express();
 
@@ -19,6 +21,7 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(bearerToken());
 
 const redisClient = redis.createClient({
   host: config.cache.cache_host,
@@ -35,6 +38,7 @@ redisClient.auth(config.cache.cache_password, (err, response) => {
 app.use(requestId);
 logHandler(app);
 
+authRouter(app);
 userRouter(app);
 
 function startServer() {

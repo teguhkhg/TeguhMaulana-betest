@@ -14,36 +14,46 @@ function userRepositories() {
     return cacheService.invalidateCache(getTagList({ userId }));
   }
 
-  async function insertNew(requestId, userData) {
-    logger.debug(`[${requestId}] Inserting a ${MODEL_NAME} into DB. [EmailAddress: ${userData.email}]`);
+  async function insertNew(requestId, {
+    email,
+    accountNumber,
+    identityNumber,
+    username
+  }) {
+    logger.debug(`[${requestId}] Inserting a ${MODEL_NAME} into DB. [EmailAddress: ${email}]`);
 
     const user = new User({
-      username: userData.username,
-      accountNumber: userData.accountNumber,
-      emailAddress: userData.email,
-      identityNumber: userData.identityNumber
+      email,
+      account_number: accountNumber,
+      identity_number: identityNumber,
+      username
     });
 
     const result = user.save().then((data) => {
-      logger.debug(`[${requestId}] Successfully inserted a ${MODEL_NAME} to DB. [EmailAddress: ${userData.email}]`);
+      logger.debug(`[${requestId}] Successfully inserted a ${MODEL_NAME} to DB. [EmailAddress: ${email}]`);
       return data;
     }).catch((error) => {
-      logger.error(`[${requestId}] Failed to insert a new ${User} to DB. [EmailAddress: ${userData.email}]; [${JSON.stringify(error.message)}]`);
+      logger.error(`[${requestId}] Failed to insert a new ${User} to DB. [EmailAddress: ${email}]; [${JSON.stringify(error.message)}]`);
       return null;
     });
 
     return result;
   }
 
-  async function getIdenticUserFromDB(requestId, userData, userId = null) {
-    logger.debug(`[${requestId}] Finding an identic ${MODEL_NAME} from DB. [EmailAddress: ${userData.email}; AccountNumber: ${userData.accountNumber}; IdentityNumber: ${userData.identityNumber}]`);
+  async function getIdenticUserFromDB(requestId, {
+    email,
+    accountNumber,
+    identityNumber,
+    username
+  }, userId = null) {
+    logger.debug(`[${requestId}] Finding an identic ${MODEL_NAME} from DB. [EmailAddress: ${email}; AccountNumber: ${accountNumber}; IdentityNumber: ${identityNumber}]`);
 
     let where = {
       $or: [
-        { emailAddress: userData.email },
-        { accountNumber: userData.accountNumber },
-        { identityNumber: userData.identityNumber },
-        { username: userData.username }
+        { email },
+        { account_number: accountNumber },
+        { identity_number: identityNumber },
+        { username }
       ]
     };
     if (userId) {
@@ -57,16 +67,16 @@ function userRepositories() {
 
     const result = User.findOne(where, (error, data) => {
       if (error) {
-        logger.debug(`[${requestId}] Failed to get identic ${MODEL_NAME} from DB. [EmailAddress: ${userData.email}; AccountNumber: ${userData.accountNumber}; IdentityNumber: ${userData.identityNumber}]; [${JSON.stringify(error.message)}]`);
+        logger.debug(`[${requestId}] Failed to get identic ${MODEL_NAME} from DB. [EmailAddress: ${email}; AccountNumber: ${accountNumber}; IdentityNumber: ${identityNumber}]; [${JSON.stringify(error.message)}]`);
         return null;
       }
 
       if (data) {
-        logger.debug(`[${requestId}] Found an identic ${MODEL_NAME} from DB. [EmailAddress: ${userData.email}; AccountNumber: ${userData.accountNumber}; IdentityNumber: ${userData.identityNumber}]`);
+        logger.debug(`[${requestId}] Found an identic ${MODEL_NAME} from DB. [EmailAddress: ${email}; AccountNumber: ${accountNumber}; IdentityNumber: ${identityNumber}]`);
         return data;
       }
 
-      logger.debug(`[${requestId}] Identic ${MODEL_NAME} not found in DB. [EmailAddress: ${userData.email}; AccountNumber: ${userData.accountNumber}; IdentityNumber: ${userData.identityNumber}]`);
+      logger.debug(`[${requestId}] Identic ${MODEL_NAME} not found in DB. [EmailAddress: ${email}; AccountNumber: ${accountNumber}; IdentityNumber: ${identityNumber}]`);
       return null;
     });
 
@@ -121,19 +131,24 @@ function userRepositories() {
       });
   }
 
-  async function updateUser(requestId, userData, userId) {
+  async function updateUser(requestId, {
+    email,
+    accountNumber,
+    identityNumber,
+    username
+  }, userId) {
     logger.debug(`[${requestId}] Updating a ${MODEL_NAME} into DB. [UserId: ${userId}]`);
-
-    const user = {
-      username: userData.username,
-      accountNumber: userData.accountNumber,
-      emailAddress: userData.email,
-      identityNumber: userData.identityNumber
-    };
 
     const result = User.findOneAndUpdate(
       { _id: userId },
-      { $set: user },
+      {
+        $set: {
+          email,
+          account_number: accountNumber,
+          identity_number: identityNumber,
+          username
+        }
+      },
       { upsert: true }
     ).then(async (data) => {
       await invalidateUserCache(userId);

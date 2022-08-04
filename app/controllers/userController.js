@@ -8,25 +8,37 @@ function userController() {
     try {
       const tag = 'Add-new-user';
       const requestId = req.id;
-      const user = req.body;
+      const {
+        email,
+        username,
+        identity_number: identityNumber,
+        account_number: accountNumber
+      } = req.body;
 
-      logger.debug(`[${requestId}] Attempting ${tag}. [EmailAddress: ${user.email}]`);
+      logger.debug(`[${requestId}] Attempting ${tag}. [EmailAddress: ${email}]`);
+
+      const user = {
+        email,
+        accountNumber,
+        identityNumber,
+        username
+      };
 
       const identicUser = await userRepo.getIdenticUserFromDB(requestId, user);
       if (identicUser) {
         const errorMsg = 'Identic user found.';
-        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [EmailAddress: ${user.email}]`);
+        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [EmailAddress: ${email}]`);
         throw new Error(errorMsg);
       }
 
       const newUser = await userRepo.insertNew(requestId, user);
       if (!newUser) {
         const errorMsg = 'Failed to create user.';
-        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [EmailAddress: ${user.email}]`);
+        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [EmailAddress: ${email}]`);
         throw new Error(errorMsg);
       }
 
-      logger.debug(`[${requestId}] ${tag} success. [EmailAddress: ${user.email}]`);
+      logger.debug(`[${requestId}] ${tag} success. [EmailAddress: ${email}]`);
       return httpRespStatusUtil.sendOk(res, newUser);
     } catch (error) {
       return httpRespStatusUtil.sendRequestFailed(res, error.message);
@@ -41,7 +53,7 @@ function userController() {
       logger.debug(`[${requestId}] Attempting ${tag}.`);
 
       const users = await userRepo.getAllUser(requestId);
-      if (!users || !users.length) {
+      if (!users) {
         const errorMsg = 'Failed to get user.';
         logger.error(`[${requestId}] Error in ${tag}. ${errorMsg}`);
         throw new Error(errorMsg);
@@ -62,6 +74,12 @@ function userController() {
 
       logger.debug(`[${requestId}] Attempting ${tag}. [UserId: ${userId}]`);
 
+      if (!userId) {
+        const errorMsg = 'Invalid User.';
+        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [UserId: ${userId}]`);
+        throw new Error(errorMsg);
+      }
+
       const user = await userRepo.getUserById(requestId, userId);
       if (!user) {
         const errorMsg = 'Failed to get user.';
@@ -81,9 +99,27 @@ function userController() {
       const tag = 'Update-user';
       const requestId = req.id;
       const { userId } = req.query;
-      const user = req.body;
+      const {
+        email,
+        username,
+        identity_number: identityNumber,
+        account_number: accountNumber
+      } = req.body;
 
       logger.debug(`[${requestId}] Attempting ${tag}. [UserId: ${userId}]`);
+
+      if (!userId) {
+        const errorMsg = 'Invalid User.';
+        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [UserId: ${userId}]`);
+        throw new Error(errorMsg);
+      }
+
+      const user = {
+        email,
+        accountNumber,
+        identityNumber,
+        username
+      };
 
       const identicUser = await userRepo.getIdenticUserFromDB(requestId, user, userId);
       if (identicUser) {
@@ -113,6 +149,12 @@ function userController() {
       const requestId = req.id;
 
       logger.debug(`[${requestId}] Attempting ${tag}. [UserId: ${userId}]`);
+
+      if (!userId) {
+        const errorMsg = 'Invalid User.';
+        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [UserId: ${userId}]`);
+        throw new Error(errorMsg);
+      }
 
       const user = await userRepo.deleteUserById(requestId, userId);
       if (!user) {

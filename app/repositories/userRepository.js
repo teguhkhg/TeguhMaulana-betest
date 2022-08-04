@@ -6,12 +6,12 @@ const cacheService = require(`${appRoot}/config/cache/cacheService`);
 function userRepositories() {
   const MODEL_NAME = 'User';
 
-  function getTagList({ userId }) {
-    return [`${MODEL_NAME}.Id:${userId}`];
+  function getTagList({ accountNumber, identityNumber }) {
+    return [`${MODEL_NAME}.AccountNumber:${accountNumber}`, `${MODEL_NAME}.IdentityNumber:${identityNumber}`];
   }
 
-  function invalidateUserCache(userId) {
-    return cacheService.invalidateCache(getTagList({ userId }));
+  function invalidateUserCache(accountNumber, identityNumber) {
+    return cacheService.invalidateCache(getTagList({ accountNumber, identityNumber }));
   }
 
   async function insertNew(requestId, {
@@ -97,36 +97,70 @@ function userRepositories() {
     return result;
   }
 
-  async function getUserByIdFromDB(requestId, userId) {
-    logger.debug(`[${requestId}] Getting ${MODEL_NAME} by id from DB. [UserId: ${userId}]`);
+  async function getUserByAccountNumberFromDB(requestId, accountNumber) {
+    logger.debug(`[${requestId}] Getting ${MODEL_NAME} by id from DB. [AccountNumber: ${accountNumber}]`);
 
-    const result = User.findOne({ _id: userId }).then((data) => {
-      cacheService.setCache(`${MODEL_NAME}.Id:${userId}`, JSON.stringify(data), [getTagList({ userId })[0]]);
-      logger.debug(`[${requestId}] Successfully got ${MODEL_NAME} by id from DB. [UserId: ${userId}]`);
+    const result = User.findOne({ account_number: accountNumber }).then((data) => {
+      cacheService.setCache(`${MODEL_NAME}.AccountNumber:${accountNumber}`, JSON.stringify(data), [getTagList({ accountNumber })[0]]);
+      logger.debug(`[${requestId}] Successfully got ${MODEL_NAME} by id from DB. [AccountNumber: ${accountNumber}]`);
       return data;
     }).catch((error) => {
-      logger.error(`[${requestId}] Failed to get ${MODEL_NAME} by idfrom DB. [UserId: ${userId}]; [${JSON.stringify(error.message)}]`);
+      logger.error(`[${requestId}] Failed to get ${MODEL_NAME} by idfrom DB. [AccountNumber: ${accountNumber}]; [${JSON.stringify(error.message)}]`);
       return null;
     });
 
     return result;
   }
 
-  async function getUserById(requestId, userId) {
-    logger.debug(`[${requestId}] Attempting ${MODEL_NAME} retrieval from Cache [UserId:${userId}]`);
+  async function getUserByAccountNumber(requestId, accountNumber) {
+    logger.debug(`[${requestId}] Attempting ${MODEL_NAME} retrieval from Cache [AccountNumber: ${accountNumber}]`);
 
-    return cacheService.getCacheClient().getAsync(`${MODEL_NAME}.Id:${userId}`)
+    return cacheService.getCacheClient().getAsync(`${MODEL_NAME}.AccountNumber:${accountNumber}`)
       .then(async (result) => {
         if (result) {
-          logger.debug(`[${requestId}] Retrieved ${MODEL_NAME} result from Cache [UserId:${userId}]`);
+          logger.debug(`[${requestId}] Retrieved ${MODEL_NAME} result from Cache [AccountNumber: ${accountNumber}]`);
           return JSON.parse(result);
         }
-        const dbResult = await getUserByIdFromDB(requestId, userId);
+        const dbResult = await getUserByAccountNumberFromDB(requestId, accountNumber);
         return JSON.parse(JSON.stringify(dbResult));
       })
       .catch(async (error) => {
-        logger.error(`[${requestId}] Error in Cache retrieval for ${MODEL_NAME}. ${error} [UserId:${userId}];`);
-        const dbResult = await this.getLicenseeByIdFromDB(requestId, userId);
+        logger.error(`[${requestId}] Error in Cache retrieval for ${MODEL_NAME}. ${error} [AccountNumber: ${accountNumber}];`);
+        const dbResult = await getUserByAccountNumberFromDB(requestId, accountNumber);
+        return JSON.parse(JSON.stringify(dbResult));
+      });
+  }
+
+  async function getUserByIdentityNumberFromDB(requestId, identityNumber) {
+    logger.debug(`[${requestId}] Getting ${MODEL_NAME} by id from DB. [IdentityNumber: ${identityNumber}]`);
+
+    const result = User.findOne({ identity_number: identityNumber }).then((data) => {
+      cacheService.setCache(`${MODEL_NAME}.IdentityNumber:${identityNumber}`, JSON.stringify(data), [getTagList({ identityNumber })[0]]);
+      logger.debug(`[${requestId}] Successfully got ${MODEL_NAME} by id from DB. [IdentityNumber: ${identityNumber}]`);
+      return data;
+    }).catch((error) => {
+      logger.error(`[${requestId}] Failed to get ${MODEL_NAME} by idfrom DB. [IdentityNumber: ${identityNumber}]; [${JSON.stringify(error.message)}]`);
+      return null;
+    });
+
+    return result;
+  }
+
+  async function getUserByIdentityNumber(requestId, identityNumber) {
+    logger.debug(`[${requestId}] Attempting ${MODEL_NAME} retrieval from Cache [IdentityNumber: ${identityNumber}]`);
+
+    return cacheService.getCacheClient().getAsync(`${MODEL_NAME}.IdentityNumber:${identityNumber}`)
+      .then(async (result) => {
+        if (result) {
+          logger.debug(`[${requestId}] Retrieved ${MODEL_NAME} result from Cache [IdentityNumber: ${identityNumber}]`);
+          return JSON.parse(result);
+        }
+        const dbResult = await getUserByIdentityNumberFromDB(requestId, identityNumber);
+        return JSON.parse(JSON.stringify(dbResult));
+      })
+      .catch(async (error) => {
+        logger.error(`[${requestId}] Error in Cache retrieval for ${MODEL_NAME}. ${error} [IdentityNumber: ${identityNumber}];`);
+        const dbResult = await getUserByIdentityNumberFromDB(requestId, identityNumber);
         return JSON.parse(JSON.stringify(dbResult));
       });
   }
@@ -181,7 +215,8 @@ function userRepositories() {
     insertNew,
     getIdenticUserFromDB,
     getAllUser,
-    getUserById,
+    getUserByAccountNumber,
+    getUserByIdentityNumber,
     updateUser,
     deleteUserById
   };

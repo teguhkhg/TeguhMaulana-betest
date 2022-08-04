@@ -12,11 +12,15 @@ function authenticator() {
 
       const ret = jwt.verify(req.token, config.ENCRYPT_KEY);
       if (ret.secret !== config.SECRET) {
-        throw new Error('Invalid token');
+        throw new Error('Token Authentication Error');
       }
 
       return next();
     } catch (error) {
+      if (error.message === 'jwt malformed') {
+        return httpRespStatusUtil.sendUnauthorized(res, 'Token Authentication Error');
+      }
+
       return httpRespStatusUtil.sendUnauthorized(res, error.message);
     }
   }

@@ -54,7 +54,7 @@ function userController() {
 
       const users = await userRepo.getAllUser(requestId);
       if (!users) {
-        const errorMsg = 'Failed to get user.';
+        const errorMsg = 'Failed to get users.';
         logger.error(`[${requestId}] Error in ${tag}. ${errorMsg}`);
         throw new Error(errorMsg);
       }
@@ -66,28 +66,40 @@ function userController() {
     }
   }
 
-  async function getUserById(req, res) {
+  async function getUserWithQuery(req, res) {
     try {
-      const tag = 'Get-user-by-id';
-      const { userId } = req.query;
+      const tag = 'Get-user-with-query';
+      const {
+        account_number: accountNumber,
+        identity_number: identityNumber
+      } = req.query;
       const requestId = req.id;
 
-      logger.debug(`[${requestId}] Attempting ${tag}. [UserId: ${userId}]`);
+      logger.debug(`[${requestId}] Attempting ${tag}. [AccountNumber: ${accountNumber}, IdentityNumber: ${identityNumber}]`);
 
-      if (!userId) {
-        const errorMsg = 'Invalid User.';
-        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [UserId: ${userId}]`);
+      if (accountNumber && identityNumber) {
+        const errorMsg = 'Unable to find by both account number and identity number. Please choose one.';
+        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [AccountNumber: ${accountNumber}, IdentityNumber: ${identityNumber}]`);
         throw new Error(errorMsg);
       }
 
-      const user = await userRepo.getUserById(requestId, userId);
+      let user;
+      let field;
+      if (accountNumber) {
+        field = `[AccountNumber: ${accountNumber}]`;
+        user = await userRepo.getUserByAccountNumber(requestId, accountNumber);
+      } else if (identityNumber) {
+        field = `[IdentityNumber: ${identityNumber}]`;
+        user = await userRepo.getUserByIdentityNumber(requestId, identityNumber);
+      }
+
       if (!user) {
         const errorMsg = 'Failed to get user.';
-        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [UserId: ${userId}]`);
+        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} ${field}`);
         throw new Error(errorMsg);
       }
 
-      logger.debug(`[${requestId}] ${tag} success. [UserId: ${userId}]`);
+      logger.debug(`[${requestId}] ${tag} success. ${field}`);
       return httpRespStatusUtil.sendOk(res, user);
     } catch (error) {
       return httpRespStatusUtil.sendRequestFailed(res, error.message);
@@ -173,7 +185,7 @@ function userController() {
   return {
     addNewUser,
     getUserList,
-    getUserById,
+    getUserWithQuery,
     updateUser,
     deleteUser
   };

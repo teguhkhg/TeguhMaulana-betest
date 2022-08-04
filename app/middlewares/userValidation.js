@@ -11,14 +11,14 @@ function userValidation() {
       if (!isValid) {
         const errorMsg = `${errorMessage} Invalid Request parameters.`;
         logger.error(`[${req.id}] ${errorMsg} [${ajv.errorsText(validate.errors)}]`);
-        return httpRespStatusUtil.sendRequestFailed(res, errorMsg);
+        return httpRespStatusUtil.sendBadRequest(res, errorMsg);
       }
 
       return next();
     } catch (error) {
       const errMsg = `${errorMessage}. Validation error.`;
       logger.warn(`[${req.id}] ${errMsg} [Error:${error.message}]`);
-      return httpRespStatusUtil.sendRequestFailed(res, errMsg);
+      return httpRespStatusUtil.sendBadRequest(res, errMsg);
     }
   }
 

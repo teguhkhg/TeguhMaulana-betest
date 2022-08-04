@@ -10,7 +10,7 @@ function userRouter(app) {
   const {
     addNewUser,
     getUserList,
-    getUserById,
+    getUserWithQuery,
     updateUser,
     deleteUser
   } = userController;
@@ -19,7 +19,7 @@ function userRouter(app) {
 
   route.post('/user', authenticator.authenticate, userValidation.addNewUser, addNewUser);
   route.get('/users', authenticator.authenticate, getUserList);
-  route.get('/user', authenticator.authenticate, getUserById);
+  route.get('/user', authenticator.authenticate, getUserWithQuery);
   route.put('/user', authenticator.authenticate, userValidation.addNewUser, updateUser);
   route.delete('/user', authenticator.authenticate, deleteUser);
 }

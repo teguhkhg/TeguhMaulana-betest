@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const { logHandler, defaultLogger } = require(`${appRoot}/config/logger`);
 const db = require(`${appRoot}/config/dbConfig`);
 
+const userRouter = require(`${appRoot}/app/routes/userRouter`);
+
 const app = express();
 
 app.use(helmet());
@@ -16,6 +18,8 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(requestId);
 logHandler(app);
+
+userRouter(app);
 
 function startServer() {
   db.connect();

@@ -12,7 +12,7 @@ function userController() {
 
       logger.debug(`[${requestId}] Attempting ${tag}. [EmailAddress: ${user.email}]`);
 
-      const identicUser = await userRepo.getIdenticUser(requestId, user);
+      const identicUser = await userRepo.getIdenticUserFromDB(requestId, user);
       if (identicUser) {
         const errorMsg = 'Identic user found.';
         logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [EmailAddress: ${user.email}]`);
@@ -85,7 +85,7 @@ function userController() {
 
       logger.debug(`[${requestId}] Attempting ${tag}. [UserId: ${userId}]`);
 
-      const identicUser = await userRepo.getIdenticUser(requestId, user, userId);
+      const identicUser = await userRepo.getIdenticUserFromDB(requestId, user, userId);
       if (identicUser) {
         const errorMsg = 'Identic user found.';
         logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [UserId: ${userId}]`);

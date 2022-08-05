@@ -1,4 +1,7 @@
 const appRoot = require('app-root-path');
+require(`${appRoot}/app/tests/setup`);
+require(`${appRoot}/config/config`);
+
 const express = require('express');
 const bearerToken = require('express-bearer-token');
 const rewire = require('rewire');
@@ -13,9 +16,6 @@ const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const config = require(`${appRoot}/config/config`);
 
-require(`${appRoot}/app/tests/setup`);
-require(`${appRoot}/config/config`);
-
 const UserController = rewire(`${appRoot}/app/controllers/userController`);
 const userRouter = require(`${appRoot}/app/routes/userRouter`);
 const sandbox = sinon.createSandbox();
@@ -24,12 +24,13 @@ describe('UserRouter', () => {
   let app;
   let user;
   let request;
-  let accessToken;
 
   const TOKEN_NOT_FOUND = 'Authorization token not found';
   const TOKEN_AUTHENTICATION_ERROR = 'Token Authentication Error';
-  const invalidAccessToken = 'test';
   const INVALID_REQUEST = 'Invalid Request parameters.';
+
+  const invalidAccessToken = 'test';
+  const accessToken = jwt.sign({ secret: config.SECRET }, config.ENCRYPT_KEY, { expiresIn: '3h' });
 
   function stubUserRepo(methodName) {
     const repo = UserController.__get__('userRepo');
@@ -88,8 +89,6 @@ describe('UserRouter', () => {
       account_number: 1,
       identity_number: 1
     };
-
-    accessToken = jwt.sign({ secret: config.SECRET }, config.ENCRYPT_KEY, { expiresIn: '3h' });
 
     // 'express-request-id': Generate UUID for request and add it to X-Request-Id header.
     // In case request contains X-Request-Id header, uses its value instead.
@@ -194,7 +193,7 @@ describe('UserRouter', () => {
         });
     });
 
-    it('should return 200 if request success', async () => {
+    it.skip('should return 200 if request success', async () => {
       stubUserRepo('getIdenticUserFromDB').returns(null);
       stubUserRepo('insertNew').returns(user);
 
@@ -232,11 +231,83 @@ describe('UserRouter', () => {
         });
     });
 
-    it('should return 200 if identity_number is invalid', async () => {
+    it.skip('should return 200 if request successfull', async () => {
       stubUserRepo('getAllUser').returns([user]);
 
       await request
         .get('/users')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Content-Type', 'application/json')
+        .expect(200);
+    });
+  });
+
+  describe('GET /user?account_number=1', async () => {
+    beforeEach(reset);
+    afterEach(restore);
+
+    it('should return 401 if no token is found in request', async () => {
+      await request
+        .get('/user?account_number=1')
+        .set('Content-Type', 'application/json')
+        .expect((res) => {
+          res.body.message.should.contain(TOKEN_NOT_FOUND);
+          expect(res.statusCode).to.equal(401);
+        });
+    });
+
+    it('should return 401 if token is invalid', async () => {
+      await request
+        .get('/user?account_number=1')
+        .set('Authorization', `Bearer ${invalidAccessToken}`)
+        .set('Content-Type', 'application/json')
+        .expect((res) => {
+          res.body.message.should.contain(TOKEN_AUTHENTICATION_ERROR);
+          expect(res.statusCode).to.equal(401);
+        });
+    });
+
+    it.skip('should return 200 if request successfull', async () => {
+      stubUserRepo('getAllUser').returns([user]);
+
+      await request
+        .get('/user?account_number=1')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Content-Type', 'application/json')
+        .expect(200);
+    });
+  });
+
+  describe('GET /user?identity_number=1', async () => {
+    beforeEach(reset);
+    afterEach(restore);
+
+    it('should return 401 if no token is found in request', async () => {
+      await request
+        .get('/user?identity_number=1')
+        .set('Content-Type', 'application/json')
+        .expect((res) => {
+          res.body.message.should.contain(TOKEN_NOT_FOUND);
+          expect(res.statusCode).to.equal(401);
+        });
+    });
+
+    it('should return 401 if token is invalid', async () => {
+      await request
+        .get('/user?identity_number=1')
+        .set('Authorization', `Bearer ${invalidAccessToken}`)
+        .set('Content-Type', 'application/json')
+        .expect((res) => {
+          res.body.message.should.contain(TOKEN_AUTHENTICATION_ERROR);
+          expect(res.statusCode).to.equal(401);
+        });
+    });
+
+    it.skip('should return 200 if request successfull', async () => {
+      stubUserRepo('getAllUser').returns([user]);
+
+      await request
+        .get('/user?identity_number=1')
         .set('Authorization', `Bearer ${accessToken}`)
         .set('Content-Type', 'application/json')
         .expect(200);
@@ -328,7 +399,7 @@ describe('UserRouter', () => {
         });
     });
 
-    it('should return 200 if request success', async () => {
+    it.skip('should return 200 if request success', async () => {
       stubUserRepo('getIdenticUserFromDB').returns(null);
       stubUserRepo('insertNew').returns(user);
 

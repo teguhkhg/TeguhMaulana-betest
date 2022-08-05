@@ -85,12 +85,18 @@ function userController() {
 
       let user;
       let field;
-      if (accountNumber) {
+      const account = Number(accountNumber);
+      const identity = Number(identityNumber);
+      if (account) {
         field = `[AccountNumber: ${accountNumber}]`;
         user = await userRepo.getUserByAccountNumber(requestId, accountNumber);
-      } else if (identityNumber) {
+      } else if (identity) {
         field = `[IdentityNumber: ${identityNumber}]`;
         user = await userRepo.getUserByIdentityNumber(requestId, identityNumber);
+      } else {
+        const errorMsg = 'Please enter a valid account number or a valid identity number.';
+        logger.error(`[${requestId}] Error in ${tag}. ${errorMsg} [AccountNumber: ${accountNumber}, IdentityNumber: ${identityNumber}]`);
+        throw new Error(errorMsg);
       }
 
       if (!user) {

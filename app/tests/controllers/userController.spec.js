@@ -171,6 +171,104 @@ describe('UserController', () => {
     });
   });
 
+  describe('getUserWithQuery', async () => {
+    beforeEach(reset);
+    afterEach(restore);
+
+    it('should return 403 if both account number and identity number supplied', async () => {
+      req.query = {
+        account_number: 1,
+        identity_number: 1
+      };
+
+      sandbox.spy(res, 'status');
+      const logStub = stubLogger('error');
+      const expectedError = 'Unable to find by both account number and identity number. Please choose one.';
+
+      await userController.getUserWithQuery(req, res);
+      const errorLog = logStub.firstCall.args[0];
+      expect(errorLog).to.contain(expectedError);
+      assertResponse(403, res);
+    });
+
+    it('should return 403 if account number and identity number is not valid', async () => {
+      req.query = {};
+
+      sandbox.spy(res, 'status');
+      const logStub = stubLogger('error');
+      const expectedError = 'Please enter a valid account number or a valid identity number.';
+
+      await userController.getUserWithQuery(req, res);
+      const errorLog = logStub.firstCall.args[0];
+      expect(errorLog).to.contain(expectedError);
+      assertResponse(403, res);
+    });
+
+    it('should return 403 if failed to get user with account number', async () => {
+      req.query = {
+        account_number: 1,
+      };
+
+      sandbox.spy(res, 'status');
+      const logStub = stubLogger('error');
+      const expectedError = 'Failed to get user.';
+
+      stubUserRepo('getUserByAccountNumber').returns(null);
+
+      await userController.getUserWithQuery(req, res);
+      const errorLog = logStub.firstCall.args[0];
+      expect(errorLog).to.contain(expectedError);
+      assertResponse(403, res);
+    });
+
+    it('should return 200 if request successfull', async () => {
+      req.query = {
+        account_number: 1,
+      };
+
+      sandbox.spy(res, 'status');
+      const sendSpy = sinon.spy(res, 'send');
+
+      stubUserRepo('getUserByAccountNumber').returns(user);
+
+      await userController.getUserWithQuery(req, res);
+      expect(JSON.stringify(sendSpy.getCall(0).args[0])).to.eql(JSON.stringify(user));
+      assertResponse(200, res);
+    });
+
+    it('should return 403 if failed to get user with account number', async () => {
+      req.query = {
+        identity_number: 1,
+      };
+
+      sandbox.spy(res, 'status');
+      const logStub = stubLogger('error');
+      const expectedError = 'Failed to get user.';
+
+      stubUserRepo('getUserByIdentityNumber').returns(null);
+
+      await userController.getUserWithQuery(req, res);
+      const errorLog = logStub.firstCall.args[0];
+      expect(errorLog).to.contain(expectedError);
+      assertResponse(403, res);
+    });
+
+    it('should return 200 if request successfull', async () => {
+      req.query = {
+        identity_number: 1,
+      };
+
+      sandbox.spy(res, 'status');
+      const sendSpy = sinon.spy(res, 'send');
+
+      stubUserRepo('getUserByIdentityNumber').returns(user);
+
+      await userController.getUserWithQuery(req, res);
+      expect(JSON.stringify(sendSpy.getCall(0).args[0])).to.eql(JSON.stringify(user));
+      assertResponse(200, res);
+    });
+  });
+
   describe('addNewUser', async () => {
     beforeEach(reset);
     afterEach(restore);

@@ -17,10 +17,10 @@ function userRouter(app) {
 
   app.use(route);
 
-  route.post('/user', authenticator.authenticate, userValidation.addNewUser, addNewUser);
+  route.post('/user', authenticator.authenticate, userValidation.newUserData, addNewUser);
   route.get('/users', authenticator.authenticate, getUserList);
   route.get('/user', authenticator.authenticate, getUserWithQuery);
-  route.put('/user', authenticator.authenticate, userValidation.addNewUser, updateUser);
+  route.put('/user', authenticator.authenticate, userValidation.newUserData, updateUser);
   route.delete('/user', authenticator.authenticate, deleteUser);
 }
 

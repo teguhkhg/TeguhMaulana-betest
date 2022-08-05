@@ -69,10 +69,8 @@ function userController() {
   async function getUserWithQuery(req, res) {
     try {
       const tag = 'Get-user-with-query';
-      const {
-        account_number: accountNumber,
-        identity_number: identityNumber
-      } = req.query;
+      const accountNumber = Number(req.query.account_number);
+      const identityNumber = Number(req.query.identity_number);
       const requestId = req.id;
 
       logger.debug(`[${requestId}] Attempting ${tag}. [AccountNumber: ${accountNumber}, IdentityNumber: ${identityNumber}]`);
@@ -85,12 +83,10 @@ function userController() {
 
       let user;
       let field;
-      const account = Number(accountNumber);
-      const identity = Number(identityNumber);
-      if (account) {
+      if (accountNumber) {
         field = `[AccountNumber: ${accountNumber}]`;
         user = await userRepo.getUserByAccountNumber(requestId, accountNumber);
-      } else if (identity) {
+      } else if (identityNumber) {
         field = `[IdentityNumber: ${identityNumber}]`;
         user = await userRepo.getUserByIdentityNumber(requestId, identityNumber);
       } else {

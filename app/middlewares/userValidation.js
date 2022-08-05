@@ -2,7 +2,7 @@ const appRoot = require('app-root-path');
 const logger = require(`${appRoot}/config/logger`).defaultLogger;
 const httpRespStatusUtil = require(`${appRoot}/app/utils/httpRespStatusUtil`);
 const schemaValidator = require(`${appRoot}/app/middlewares/ajvValidation`);
-const { AddNewUserSchema } = require(`${appRoot}/app/utils/addNewUser.schema`);
+const { AddNewUserSchema } = require(`${appRoot}/app/utils/map/addNewUser.schema`);
 
 function userValidation() {
   function compileBody(req, res, schema, errorMessage, next) {
@@ -22,13 +22,13 @@ function userValidation() {
     }
   }
 
-  function addNewUser(req, res, next) {
-    const errorMessage = 'Failed to add new User.';
+  function newUserData(req, res, next) {
+    const errorMessage = 'Failed to insert/update user data.';
     return compileBody(req, res, AddNewUserSchema, errorMessage, next);
   }
 
   return {
-    addNewUser
+    newUserData
   };
 }
 

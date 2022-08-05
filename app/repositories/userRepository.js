@@ -135,7 +135,7 @@ function userRepositories() {
     logger.debug(`[${requestId}] Getting ${MODEL_NAME} by id from DB. [IdentityNumber: ${identityNumber}]`);
 
     const result = User.findOne({ identity_number: identityNumber }).then((data) => {
-      cacheService.setCache(`${MODEL_NAME}.IdentityNumber:${identityNumber}`, JSON.stringify(data), [getTagList({ identityNumber })[0]]);
+      cacheService.setCache(`${MODEL_NAME}.IdentityNumber:${identityNumber}`, JSON.stringify(data), [getTagList({ identityNumber })[1]]);
       logger.debug(`[${requestId}] Successfully got ${MODEL_NAME} by id from DB. [IdentityNumber: ${identityNumber}]`);
       return data;
     }).catch((error) => {
@@ -183,7 +183,7 @@ function userRepositories() {
           username
         }
       },
-      { upsert: true }
+      { new: true }
     ).then(async (data) => {
       await invalidateUserCache(userId);
       logger.debug(`[${requestId}] Successfully updated a ${MODEL_NAME} to DB. [UserId: ${userId}]`);

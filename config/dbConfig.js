@@ -5,13 +5,15 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const {
-  DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME
+  DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_CONN_URI
 } = process.env;
+
+const connectionString = DB_CONN_URI || `mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`;
 
 module.exports = {
   connect: () => {
     mongoose
-      .connect(`mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`, {
+      .connect(connectionString, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         useFindAndModify: false,

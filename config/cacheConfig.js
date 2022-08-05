@@ -2,7 +2,7 @@ const toBoolean = require('to-bool');
 require('dotenv').config();
 
 const cacheConfig = {
-  cache_conn_uri: process.env.CACHE_CONN_URI,
+  cache_conn_uri: process.env.REDIS_URL,
   cache_host: process.env.CACHE_HOST,
   cache_port: process.env.CACHE_PORT,
   cache_password: process.env.CACHE_PASSWORD,

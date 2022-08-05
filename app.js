@@ -23,17 +23,30 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bearerToken());
 
-const redisClient = redis.createClient({
-  host: config.cache.cache_host,
-  port: config.cache.cache_port
-});
-redisClient.auth(config.cache.cache_password, (err, response) => {
-  if (err) {
-    defaultLogger.error(`['REDIS'] Failed to authenticate redis connection; Error:${err.message}`);
-  } else {
-    defaultLogger.debug(`['REDIS'] Authenticated redis connection; Response:${response}`);
-  }
-});
+let redisClient;
+if (config.cache.cache_conn_uri) {
+  redisClient = redis.createClient({
+    url: config.cache.cache_conn_uri,
+    socket: {
+      tls: true,
+      rejectUnauthorized: false
+    }
+  });
+
+  defaultLogger.debug('["REDIS"] Authenticated redis connection');
+} else {
+  redisClient = redis.createClient({
+    host: config.cache.cache_host,
+    port: config.cache.cache_port
+  });
+  redisClient.auth(config.cache.cache_password, (err, response) => {
+    if (err) {
+      defaultLogger.error(`['REDIS'] Failed to authenticate redis connection; Error:${err.message}`);
+    } else {
+      defaultLogger.debug(`['REDIS'] Authenticated redis connection; Response:${response}`);
+    }
+  });
+}
 
 app.use(requestId);
 logHandler(app);

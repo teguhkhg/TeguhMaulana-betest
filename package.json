@@ -48,5 +48,8 @@
     "rewire": "6.0.0",
     "sinon": "9.2.0",
     "supertest": "4.0.2"
+  },
+  "engines": {
+    "node": "12.22.1"
   }
 }
